@@ -1,17 +1,496 @@
-# Painters Job Tracker
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Painters Job Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --primary: #1b4f72;
+      --accent: #f4b400;
+      --bg: #f5f5f5;
+      --card: #ffffff;
+      --text: #222222;
+    }
 
-This application helps you track jobs for painters efficiently.
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-## Features
-- Job Management
-- Customer Management
-- Invoicing and Billing
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
 
-## Installation
-Just clone the repository and run the index.html in your browser.
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 12px 16px;
+      text-align: center;
+    }
 
-## Usage
-Fill in the job details and submit them to track your painters more effectively.
+    header h1 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
 
-## License
-This project is licensed under the MIT License.
+    main {
+      padding: 12px;
+      max-width: 800px;
+      margin: 0 auto 40px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 0.9rem;
+    }
+
+    textarea {
+      min-height: 60px;
+      resize: vertical;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .row > div {
+      flex: 1 1 120px;
+    }
+
+    button {
+      border: none;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .btn-block {
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    .small {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .entry {
+      border-bottom: 1px solid #eee;
+      padding: 6px 0;
+      font-size: 0.85rem;
+    }
+
+    .entry:last-child {
+      border-bottom: none;
+    }
+
+    .entry-header {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #eef3f7;
+      font-size: 0.75rem;
+      margin-left: 4px;
+    }
+
+    @media (max-width: 480px) {
+      header h1 {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Painters Job Tracker</h1>
+  </header>
+
+  <main>
+    <!-- Job selection -->
+    <section class="card">
+      <h2>Job</h2>
+      <label for="jobSelect">Select job</label>
+      <select id="jobSelect"></select>
+
+      <div class="row">
+        <div>
+          <label for="newJobName">Add new job</label>
+          <input id="newJobName" type="text" placeholder="e.g. 24 Smith St exterior" />
+        </div>
+        <div style="align-self:flex-end;">
+          <button class="btn-secondary" id="addJobBtn">Add job</button>
+        </div>
+      </div>
+      <p class="small">Jobs are saved on this device only (local to this phone/tablet).</p>
+    </section>
+
+    <!-- Daily log form -->
+    <section class="card">
+      <h2>Daily log</h2>
+
+      <div class="row">
+        <div>
+          <label for="logDate">Date</label>
+          <input id="logDate" type="date" />
+        </div>
+        <div>
+          <label for="painterName">Painter</label>
+          <input id="painterName" type="text" placeholder="Name" />
+        </div>
+      </div>
+
+      <label for="workDone">Work done</label>
+      <textarea id="workDone" placeholder="What was done today?"></textarea>
+
+      <label for="materialsUsed">Materials used</label>
+      <textarea id="materialsUsed" placeholder="Paints, fillers, consumables..."></textarea>
+
+      <div class="row">
+        <div>
+          <label for="hoursOnSite">Hours on site</label>
+          <input id="hoursOnSite" type="number" step="0.25" min="0" placeholder="e.g. 7.5" />
+        </div>
+        <div>
+          <label for="issues">Issues / notes</label>
+          <textarea id="issues" placeholder="Access, weather, client notes..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn-primary btn-block" id="saveEntryBtn">Save entry</button>
+      <p class="small" id="saveStatus"></p>
+    </section>
+
+    <!-- Entries list -->
+    <section class="card">
+      <h2>Job history</h2>
+      <p class="small" id="entriesInfo">No entries yet for this job.</p>
+      <div id="entriesList"></div>
+    </section>
+
+    <!-- Report / sharing -->
+    <section class="card">
+      <h2>Share / send report</h2>
+      <p class="small">
+        This creates a plain‑text summary you can send to a client, PM, or office.
+      </p>
+      <button class="btn-accent btn-block" id="copyReportBtn">Copy report text</button>
+      <button class="btn-secondary btn-block" id="emailReportBtn">Open in email</button>
+      <textarea id="reportPreview" class="small" style="margin-top:8px; min-height:80px;" readonly></textarea>
+    </section>
+  </main>
+
+  <script>
+    // Simple localStorage keys
+    const STORAGE_JOBS = "pjtracker_jobs";
+    const STORAGE_ENTRIES = "pjtracker_entries";
+
+    const jobSelect = document.getElementById("jobSelect");
+    const newJobName = document.getElementById("newJobName");
+    const addJobBtn = document.getElementById("addJobBtn");
+
+    const logDate = document.getElementById("logDate");
+    const painterName = document.getElementById("painterName");
+    const workDone = document.getElementById("workDone");
+    const materialsUsed = document.getElementById("materialsUsed");
+    const hoursOnSite = document.getElementById("hoursOnSite");
+    const issues = document.getElementById("issues");
+    const saveEntryBtn = document.getElementById("saveEntryBtn");
+    const saveStatus = document.getElementById("saveStatus");
+
+    const entriesInfo = document.getElementById("entriesInfo");
+    const entriesList = document.getElementById("entriesList");
+
+    const copyReportBtn = document.getElementById("copyReportBtn");
+    const emailReportBtn = document.getElementById("emailReportBtn");
+    const reportPreview = document.getElementById("reportPreview");
+
+    // Helpers
+    function loadJobs() {
+      const raw = localStorage.getItem(STORAGE_JOBS);
+      return raw ? JSON.parse(raw) : [];
+    }
+
+    function saveJobs(jobs) {
+      localStorage.setItem(STORAGE_JOBS, JSON.stringify(jobs));
+    }
+
+    function loadEntries() {
+      const raw = localStorage.getItem(STORAGE_ENTRIES);
+      return raw ? JSON.parse(raw) : {};
+    }
+
+    function saveEntries(entries) {
+      localStorage.setItem(STORAGE_ENTRIES, JSON.stringify(entries));
+    }
+
+    function ensureDefaultJob() {
+      let jobs = loadJobs();
+      if (jobs.length === 0) {
+        jobs = ["Example job – 10 High St exterior"];
+        saveJobs(jobs);
+      }
+      return jobs;
+    }
+
+    function populateJobSelect() {
+      const jobs = ensureDefaultJob();
+      jobSelect.innerHTML = "";
+      jobs.forEach((job, idx) => {
+        const opt = document.createElement("option");
+        opt.value = job;
+        opt.textContent = job;
+        jobSelect.appendChild(opt);
+      });
+      if (jobs.length > 0) {
+        jobSelect.value = jobs[0];
+      }
+      refreshEntriesView();
+    }
+
+    function todayISO() {
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function addJob() {
+      const name = newJobName.value.trim();
+      if (!name) return;
+      const jobs = loadJobs();
+      if (!jobs.includes(name)) {
+        jobs.push(name);
+        saveJobs(jobs);
+        populateJobSelect();
+        jobSelect.value = name;
+      }
+      newJobName.value = "";
+    }
+
+    function saveEntry() {
+      const job = jobSelect.value;
+      if (!job) {
+        alert("Please select a job first.");
+        return;
+      }
+
+      const date = logDate.value || todayISO();
+      const entry = {
+        date,
+        painter: painterName.value.trim(),
+        work: workDone.value.trim(),
+        materials: materialsUsed.value.trim(),
+        hours: hoursOnSite.value.trim(),
+        issues: issues.value.trim(),
+        createdAt: new Date().toISOString()
+      };
+
+      if (!entry.work && !entry.materials && !entry.issues) {
+        alert("Please enter at least some details for the day.");
+        return;
+      }
+
+      const entries = loadEntries();
+      if (!entries[job]) entries[job] = [];
+      entries[job].push(entry);
+      saveEntries(entries);
+
+      saveStatus.textContent = "Saved ✔";
+      setTimeout(() => (saveStatus.textContent = ""), 2000);
+
+      // Clear form except job + date
+      workDone.value = "";
+      materialsUsed.value = "";
+      hoursOnSite.value = "";
+      issues.value = "";
+
+      refreshEntriesView();
+      updateReportPreview();
+    }
+
+    function refreshEntriesView() {
+      const job = jobSelect.value;
+      const entries = loadEntries()[job] || [];
+
+      if (entries.length === 0) {
+        entriesInfo.textContent = "No entries yet for this job.";
+        entriesList.innerHTML = "";
+        reportPreview.value = "";
+        return;
+      }
+
+      entriesInfo.textContent = `${entries.length} entr${entries.length === 1 ? "y" : "ies"} for this job.`;
+      entriesList.innerHTML = "";
+
+      // Sort by date then createdAt
+      const sorted = [...entries].sort((a, b) => {
+        if (a.date === b.date) {
+          return (a.createdAt || "").localeCompare(b.createdAt || "");
+        }
+        return a.date.localeCompare(b.date);
+      });
+
+      sorted.forEach((e) => {
+        const div = document.createElement("div");
+        div.className = "entry";
+
+        const header = document.createElement("div");
+        header.className = "entry-header";
+        header.textContent = e.date;
+        if (e.painter) {
+          const pill = document.createElement("span");
+          pill.className = "pill";
+          pill.textContent = e.painter;
+          header.appendChild(pill);
+        }
+        if (e.hours) {
+          const pill = document.createElement("span");
+          pill.className = "pill";
+          pill.textContent = `${e.hours} hrs`;
+          header.appendChild(pill);
+        }
+
+        const body = document.createElement("div");
+        body.innerHTML = `
+          ${e.work ? `<div><strong>Work:</strong> ${escapeHtml(e.work)}</div>` : ""}
+          ${e.materials ? `<div><strong>Materials:</strong> ${escapeHtml(e.materials)}</div>` : ""}
+          ${e.issues ? `<div><strong>Issues:</strong> ${escapeHtml(e.issues)}</div>` : ""}
+        `;
+
+        div.appendChild(header);
+        div.appendChild(body);
+        entriesList.appendChild(div);
+      });
+
+      updateReportPreview();
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function buildReportText() {
+      const job = jobSelect.value;
+      const entries = loadEntries()[job] || [];
+      if (!job || entries.length === 0) return "";
+
+      const sorted = [...entries].sort((a, b) => {
+        if (a.date === b.date) {
+          return (a.createdAt || "").localeCompare(b.createdAt || "");
+        }
+        return a.date.localeCompare(b.date);
+      });
+
+      const lines = [];
+      lines.push(`Job: ${job}`);
+      lines.push("");
+
+      sorted.forEach((e) => {
+        lines.push(`Date: ${e.date}`);
+        if (e.painter) lines.push(`Painter: ${e.painter}`);
+        if (e.hours) lines.push(`Hours on site: ${e.hours}`);
+        if (e.work) lines.push(`Work done: ${e.work}`);
+        if (e.materials) lines.push(`Materials used: ${e.materials}`);
+        if (e.issues) lines.push(`Issues / notes: ${e.issues}`);
+        lines.push("");
+      });
+
+      return lines.join("\n");
+    }
+
+    function updateReportPreview() {
+      reportPreview.value = buildReportText();
+    }
+
+    function copyReportToClipboard() {
+      const text = buildReportText();
+      if (!text) {
+        alert("No entries to include in the report.");
+        return;
+      }
+      navigator.clipboard.writeText(text)
+        .then(() => alert("Report copied to clipboard."))
+        .catch(() => alert("Could not copy report on this device."));
+    }
+
+    function openReportInEmail() {
+      const text = buildReportText();
+      if (!text) {
+        alert("No entries to include in the report.");
+        return;
+      }
+      const subject = encodeURIComponent("Daily job report");
+      const body = encodeURIComponent(text);
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    }
+
+    // Event wiring
+    addJobBtn.addEventListener("click", addJob);
+    saveEntryBtn.addEventListener("click", saveEntry);
+    jobSelect.addEventListener("change", () => {
+      refreshEntriesView();
+    });
+    copyReportBtn.addEventListener("click", copyReportToClipboard);
+    emailReportBtn.addEventListener("click", openReportInEmail);
+
+    // Init
+    logDate.value = todayISO();
+    populateJobSelect();
+  </script>
+</body>
+</html>
